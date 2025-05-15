@@ -1,0 +1,19 @@
+# Git
+.git
+.gitignore
+
+# Node.js
+node_modules
+npm-debug.log
+
+# Cache directory
+cache
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Other
+*.md
+!README.md
+.DS_Store

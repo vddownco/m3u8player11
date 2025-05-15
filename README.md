@@ -44,3 +44,15 @@ npm start
 
 - You can modify the styles in `index.html` to customize player appearance
 - You can edit `server.js` to add more functionality, such as CORS settings, cache control, etc. 
+
+### Build Docker Image
+
+```bash
+docker build -t m3u8-player .
+```
+
+### Run Docker Container
+
+```bash
+docker run -d -p 3000:3000 --name m3u8-player-container m3u8-player
+```
