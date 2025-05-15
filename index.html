@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal M3U8 Player</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3a0ca3;
+            --accent-color: #4cc9f0;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --gray-light: #e9ecef;
+            --gray-dark: #495057;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --transition-speed: 0.3s;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--light-color);
+            color: var(--dark-color);
+            line-height: 1.6;
+            transition: background-color var(--transition-speed);
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 25px;
+            font-weight: 700;
+            font-size: 2.2rem;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: var(--dark-color);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .theme-toggle:hover {
+            color: var(--primary-color);
+        }
+
+        .dark-mode {
+            --light-color: #121212;
+            --dark-color: #f8f9fa;
+            --gray-light: #333;
+            --gray-dark: #ccc;
+        }
+
+        .dark-mode .container {
+            background-color: #1e1e1e;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .dark-mode input, .dark-mode select {
+            background-color: #2d2d2d;
+            border-color: #444;
+            color: #eee;
+        }
+
+        video {
+            width: 100%;
+            height: auto;
+            background-color: #000;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        .video-container {
+            margin-top: 30px;
+            position: relative;
+            overflow: hidden;
+            border-radius: var(--border-radius);
+        }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: background-color var(--transition-speed), transform 0.2s;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        button i {
+            margin-right: 6px;
+        }
+
+        button:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .input-group {
+            margin-top: 15px;
+            width: 100%;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: var(--gray-dark);
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--gray-light);
+            border-radius: var(--border-radius);
+            margin-bottom: 15px;
+            transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+            font-size: 1rem;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(76, 201, 240, 0.25);
+            outline: none;
+        }
+
+        .url-action {
+            display: flex;
+            gap: 10px;
+        }
+
+        .url-action input {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .url-action button {
+            flex-shrink: 0;
+            padding: 10px 20px;
+        }
+
+        .file-input {
+            margin: 20px 0;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .file-input input[type="file"] {
+            font-size: 100px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-trigger {
+            display: block;
+            background-color: var(--gray-light);
+            color: var(--gray-dark);
+            padding: 15px;
+            border-radius: var(--border-radius);
+            text-align: center;
+            transition: all var(--transition-speed);
+            border: 2px dashed #ccc;
+        }
+
+        .file-input input[type="file"]:hover + .file-input-trigger {
+            background-color: var(--accent-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .loading {
+            text-align: center;
+            color: var(--accent-color);
+            margin-top: 15px;
+            display: none;
+            font-weight: 500;
+        }
+
+        .loading i {
+            animation: spin 1.5s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--gray-light);
+            padding-left: 0;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            background-color: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            margin-right: 10px;
+            font-weight: 500;
+            color: var(--gray-dark);
+            transition: all var(--transition-speed);
+            position: relative;
+            bottom: -2px;
+        }
+
+        .tab:hover {
+            color: var(--primary-color);
+        }
+
+        .tab.active {
+            border-bottom-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .cors-options {
+            padding: 10px 15px;
+            background-color: var(--gray-light);
+            border-radius: var(--border-radius);
+            margin-bottom: 15px;
+        }
+
+        .cors-options h3 {
+            margin-top: 0;
+            font-size: 1rem;
+            color: var(--gray-dark);
+        }
+        
+        .alert {
+            padding: 10px 15px;
+            border-radius: var(--border-radius);
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .alert i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .alert-warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .alert-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .url-action {
+                flex-direction: column;
+            }
+            
+            .url-action input {
+                margin-bottom: 10px;
+            }
+            
+            .controls {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" id="theme-toggle">
+        <i class="fas fa-moon"></i>
+    </button>
+    
+    <div class="container">
+        <h1>Universal M3U8 Player</h1>
+        
+        <div class="tabs">
+            <button class="tab active" data-target="url-tab">
+                <i class="fas fa-link"></i> URL Load
+            </button>
+            <button class="tab" data-target="file-tab">
+                <i class="fas fa-file-video"></i> Local File
+            </button>
+        </div>
+        
+        <div id="url-tab" class="tab-content active">
+            <div class="input-group">
+                <label for="m3u8-url"><i class="fas fa-link"></i> M3U8 URL:</label>
+                <div class="url-action">
+                    <input type="text" id="m3u8-url" placeholder="Enter complete M3U8 URL or relative path">
+                    <button id="load-url"><i class="fas fa-play-circle"></i> Load</button>
+                </div>
+            </div>
+            
+            <div class="cors-options">
+                <h3><i class="fas fa-globe"></i> CORS Handling Options</h3>
+                <div class="input-group">
+                    <label for="cors-mode">Processing Mode:</label>
+                    <select id="cors-mode">
+                        <option value="cors">Standard Mode (CORS)</option>
+                        <option value="no-cors">Compatible Mode (no-CORS)</option>
+                        <option value="proxy">Proxy Mode (Recommended)</option>
+                    </select>
+                </div>
+                
+                <div class="input-group" id="proxy-container" style="display:none;">
+                    <label for="proxy-url"><i class="fas fa-exchange-alt"></i> Proxy Server:</label>
+                    <input type="text" id="proxy-url" placeholder="Proxy server URL (e.g.: https://cors-anywhere.herokuapp.com/)">
+                </div>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <div>If you encounter CORS errors, try selecting "Proxy Mode" and enter a public CORS proxy server address</div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="file-tab" class="tab-content">
+            <div class="file-input">
+                <div class="input-group">
+                    <label for="base-url-local"><i class="fas fa-server"></i> Base URL (Optional):</label>
+                    <input type="text" id="base-url-local" placeholder="Enter base URL for relative paths in local M3U8 files">
+                </div>
+                
+                <label><i class="fas fa-file-upload"></i> Select Local M3U8 File:</label>
+                <div class="file-input-wrapper">
+                    <input type="file" id="m3u8-file" accept=".m3u8">
+                    <div class="file-input-trigger">
+                        <i class="fas fa-cloud-upload-alt"></i> Click or drag file here to upload
+                    </div>
+                </div>
+                
+                <button id="load-file"><i class="fas fa-play-circle"></i> Load File</button>
+                
+                <div class="cors-options">
+                    <h3><i class="fas fa-globe"></i> CORS Handling Options (for remote files referenced in M3U8)</h3>
+                    <div class="input-group">
+                        <label for="cors-mode-local">Processing Mode:</label>
+                        <select id="cors-mode-local">
+                            <option value="cors">Standard Mode (CORS)</option>
+                            <option value="no-cors">Compatible Mode (no-CORS)</option>
+                            <option value="proxy">Proxy Mode (Recommended)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="input-group" id="proxy-container-local" style="display:none;">
+                        <label for="proxy-url-local"><i class="fas fa-exchange-alt"></i> Proxy Server:</label>
+                        <input type="text" id="proxy-url-local" placeholder="Proxy server URL (e.g.: https://cors-anywhere.herokuapp.com/)">
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <div>Local M3U8 files that reference remote TS segments may require CORS handling</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="video-container">
+            <video id="video" controls></video>
+        </div>
+        
+        <div class="loading" id="loading">
+            <i class="fas fa-spinner"></i> Loading video...
+        </div>
+        
+        <div class="controls">
+            <button id="play"><i class="fas fa-play"></i> Play</button>
+            <button id="pause"><i class="fas fa-pause"></i> Pause</button>
+            <button id="reload"><i class="fas fa-sync-alt"></i> Reload</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM elements
+            const video = document.getElementById('video');
+            const playBtn = document.getElementById('play');
+            const pauseBtn = document.getElementById('pause');
+            const reloadBtn = document.getElementById('reload');
+            const baseUrlLocalInput = document.getElementById('base-url-local');
+            const urlInput = document.getElementById('m3u8-url');
+            const loadUrlBtn = document.getElementById('load-url');
+            const fileInput = document.getElementById('m3u8-file');
+            const loadFileBtn = document.getElementById('load-file');
+            const loadingIndicator = document.getElementById('loading');
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            const corsMode = document.getElementById('cors-mode');
+            const proxyUrl = document.getElementById('proxy-url');
+            const corsModeLocal = document.getElementById('cors-mode-local');
+            const proxyUrlLocal = document.getElementById('proxy-url-local');
+            const proxyContainer = document.getElementById('proxy-container');
+            const proxyContainerLocal = document.getElementById('proxy-container-local');
+            const themeToggle = document.getElementById('theme-toggle');
+            
+            // File name display
+            const fileInputTrigger = document.querySelector('.file-input-trigger');
+            fileInput.addEventListener('change', function() {
+                if (this.files.length > 0) {
+                    fileInputTrigger.innerHTML = `<i class="fas fa-file"></i> ${this.files[0].name}`;
+                } else {
+                    fileInputTrigger.innerHTML = `<i class="fas fa-cloud-upload-alt"></i> Click or drag file here to upload`;
+                }
+            });
+            
+            // Dark mode toggle
+            themeToggle.addEventListener('click', function() {
+                document.body.classList.toggle('dark-mode');
+                
+                if (document.body.classList.contains('dark-mode')) {
+                    themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+                } else {
+                    themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+                }
+            });
+            
+            // Show/hide proxy URL input
+            corsMode.addEventListener('change', function() {
+                proxyContainer.style.display = this.value === 'proxy' ? 'block' : 'none';
+            });
+            
+            corsModeLocal.addEventListener('change', function() {
+                proxyContainerLocal.style.display = this.value === 'proxy' ? 'block' : 'none';
+            });
+            
+            // Current URL or file in use
+            let currentVideoSrc = '';
+            let isLocalFile = false;
+            let objectUrl = null;
+            let currentCorsMode = 'cors';
+            let currentProxyUrl = '';
+            
+            let hls = null;
+            
+            // Tab switching
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+                    
+                    this.classList.add('active');
+                    const target = this.getAttribute('data-target');
+                    document.getElementById(target).classList.add('active');
+                });
+            });
+            
+            // Load video function
+            function loadVideo(videoSrc, isLocal = false, baseUrl = '') {
+                if (!videoSrc) return;
+                
+                isLocalFile = isLocal;
+                currentVideoSrc = videoSrc;
+                loadingIndicator.style.display = 'flex';
+                
+                // Set current CORS mode and proxy
+                if (isLocal) {
+                    currentCorsMode = corsModeLocal.value;
+                    currentProxyUrl = proxyUrlLocal.value.trim();
+                } else {
+                    currentCorsMode = corsMode.value;
+                    currentProxyUrl = proxyUrl.value.trim();
+                }
+                
+                // Destroy previous HLS instance if exists
+                if (hls) {
+                    hls.destroy();
+                }
+                
+                // Clear previous object URL
+                if (objectUrl && objectUrl !== videoSrc) {
+                    URL.revokeObjectURL(objectUrl);
+                    objectUrl = null;
+                }
+                
+                if (isLocal) {
+                    objectUrl = videoSrc;
+                }
+                
+                // Check if HLS is supported
+                if (Hls.isSupported()) {
+                    const hlsConfig = {
+                        // Add HLS configuration, optimize streaming
+                        maxBufferLength: 30,          // Maximum buffer length (seconds)
+                        maxMaxBufferLength: 600,      // Maximum allowed buffer length (seconds)
+                        enableWorker: true,           // Enable Web Worker processing
+                        lowLatencyMode: false,        // Turn off low latency mode, prioritize stability
+                        backBufferLength: 60,         // Playback buffer length
+                        // Debug settings
+                        debug: false,                 // Disable debug logs to improve performance
+                        // CORS settings
+                        xhrSetup: function(xhr, url) {
+                            // Set according to current CORS mode
+                            if (currentCorsMode === 'no-cors') {
+                                xhr.withCredentials = false;
+                            } else if (currentCorsMode === 'cors') {
+                                xhr.withCredentials = true;
+                            }
+                        }
+                    };
+                    
+                    // If using proxy mode, create custom loader
+                    if (currentCorsMode === 'proxy' && currentProxyUrl) {
+                        hlsConfig.loader = function() {
+                            const loader = new Hls.DefaultConfig.loader();
+                            const load = loader.load.bind(loader);
+                            
+                            loader.load = function(context, config, callbacks) {
+                                if (context.url && !context.url.startsWith('blob:')) {
+                                    // If URL already contains proxy prefix, don't add it
+                                    if (!context.url.startsWith(currentProxyUrl)) {
+                                        context.url = currentProxyUrl + context.url;
+                                    }
+                                }
+                                
+                                // Call original load method
+                                load(context, config, callbacks);
+                            };
+                            
+                            return loader;
+                        };
+                    }
+                    
+                    hls = new Hls(hlsConfig);
+                    
+                    hls.loadSource(videoSrc);
+                    hls.attachMedia(video);
+                    
+                    hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                        console.log('Manifest loaded successfully');
+                        loadingIndicator.style.display = 'none';
+                        video.play().catch(e => {
+                            console.warn('Autoplay failed, user interaction needed:', e);
+                        });
+                    });
+                    
+                    hls.on(Hls.Events.ERROR, function(event, data) {
+                        console.error('HLS error:', data);
+                        if (data.fatal) {
+                            switch(data.type) {
+                                case Hls.ErrorTypes.NETWORK_ERROR:
+                                    console.error('Network error');
+                                    // Show error message
+                                    showError('Network error: ' + data.details + (data.response ? ' - ' + data.response.code : ''));
+                                    hls.startLoad();
+                                    break;
+                                case Hls.ErrorTypes.MEDIA_ERROR:
+                                    console.error('Media error');
+                                    showError('Media error: ' + data.details);
+                                    hls.recoverMediaError();
+                                    break;
+                                default:
+                                    console.error('Unrecoverable error');
+                                    showError('Unrecoverable error: ' + data.details);
+                                    hls.destroy();
+                                    loadingIndicator.style.display = 'none';
+                                    break;
+                            }
+                        }
+                    });
+                } 
+                // For browsers with native HLS support (like Safari)
+                else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                    video.src = videoSrc;
+                    video.addEventListener('loadedmetadata', function() {
+                        loadingIndicator.style.display = 'none';
+                        video.play().catch(e => {
+                            console.warn('Autoplay failed, user interaction needed:', e);
+                        });
+                    });
+                    
+                    // Error handling
+                    video.addEventListener('error', function() {
+                        loadingIndicator.style.display = 'none';
+                        showError('Video loading failed, possibly due to CORS issues, try using proxy mode');
+                    });
+                } else {
+                    console.error('HLS is not supported in this browser');
+                    loadingIndicator.style.display = 'none';
+                    showError('Your browser does not support HLS playback');
+                }
+            }
+            
+            // Show error message
+            function showError(message) {
+                if (document.querySelector('.alert-danger')) {
+                    document.querySelector('.alert-danger').remove();
+                }
+                
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-danger';
+                alert.innerHTML = `<i class="fas fa-exclamation-circle"></i><div>${message}</div>`;
+                
+                document.querySelector('.video-container').insertAdjacentElement('afterend', alert);
+                
+                // Auto-remove error message
+                setTimeout(() => {
+                    if (alert.parentNode) {
+                        alert.parentNode.removeChild(alert);
+                    }
+                }, 5000);
+            }
+            
+            // Control button events
+            playBtn.addEventListener('click', function() {
+                video.play();
+            });
+            
+            pauseBtn.addEventListener('click', function() {
+                video.pause();
+            });
+            
+            reloadBtn.addEventListener('click', function() {
+                if (currentVideoSrc) {
+                    loadVideo(currentVideoSrc, isLocalFile);
+                }
+            });
+            
+            // URL loading
+            loadUrlBtn.addEventListener('click', function() {
+                let url = urlInput.value.trim();
+                
+                if (!url) {
+                    showError('Please enter M3U8 URL');
+                    return;
+                }
+                
+                loadVideo(url, false);
+            });
+            
+            // File loading
+            loadFileBtn.addEventListener('click', function() {
+                const file = fileInput.files[0];
+                if (!file) {
+                    showError('Please select an M3U8 file first');
+                    return;
+                }
+                
+                const baseUrl = baseUrlLocalInput.value.trim();
+                
+                // Read M3U8 file content
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const content = e.target.result;
+                    
+                    if (baseUrl) {
+                        // Process M3U8 content, replace relative paths with absolute paths
+                        const processedContent = processM3U8Content(content, baseUrl);
+                        objectUrl = URL.createObjectURL(new Blob([processedContent], {type: 'application/x-mpegURL'}));
+                        loadVideo(objectUrl, true);
+                    } else {
+                        // Prompt user about needing Base URL
+                        const hasRelativePaths = checkForRelativePaths(content);
+                        if (hasRelativePaths) {
+                            showError('M3U8 file contains relative paths, please provide Base URL to correctly load media files');
+                            objectUrl = URL.createObjectURL(new Blob([content], {type: 'application/x-mpegURL'}));
+                            loadVideo(objectUrl, true);
+                        } else {
+                            objectUrl = URL.createObjectURL(new Blob([content], {type: 'application/x-mpegURL'}));
+                            loadVideo(objectUrl, true);
+                        }
+                    }
+                };
+                reader.readAsText(file);
+            });
+            
+            // Auto-load when file selection changes
+            fileInput.addEventListener('change', function() {
+                if (this.files.length > 0) {
+                    const baseUrl = baseUrlLocalInput.value.trim();
+                    
+                    // Read M3U8 file content
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const content = e.target.result;
+                        
+                        if (baseUrl) {
+                            // Process M3U8 content, replace relative paths with absolute paths
+                            const processedContent = processM3U8Content(content, baseUrl);
+                            objectUrl = URL.createObjectURL(new Blob([processedContent], {type: 'application/x-mpegURL'}));
+                            loadVideo(objectUrl, true);
+                        } else {
+                            // Check if there are relative paths, if yes, prompt user
+                            const hasRelativePaths = checkForRelativePaths(content);
+                            if (hasRelativePaths) {
+                                console.warn('M3U8 file contains relative paths, Base URL may be needed for correct loading');
+                            }
+                            objectUrl = URL.createObjectURL(new Blob([content], {type: 'application/x-mpegURL'}));
+                            loadVideo(objectUrl, true);
+                        }
+                    };
+                    reader.readAsText(this.files[0]);
+                }
+            });
+            
+            // Helper function: Process M3U8 content, convert relative paths to absolute paths
+            function processM3U8Content(content, baseUrl) {
+                const lines = content.split('\n');
+                const processedLines = lines.map(line => {
+                    // Skip comment lines and empty lines
+                    if (line.startsWith('#') || line.trim() === '') {
+                        return line;
+                    }
+                    
+                    // Skip lines that are already absolute URLs
+                    if (line.match(/^https?:\/\//i)) {
+                        return line;
+                    }
+                    
+                    // Ensure baseUrl ends with /
+                    const formattedBaseUrl = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
+                    
+                    // Ensure relative path doesn't start with /
+                    const formattedPath = line.startsWith('/') ? line.substring(1) : line;
+                    
+                    // Return absolute URL
+                    return formattedBaseUrl + formattedPath;
+                });
+                
+                return processedLines.join('\n');
+            }
+            
+            // Helper function: Check if M3U8 content contains relative paths
+            function checkForRelativePaths(content) {
+                const lines = content.split('\n');
+                
+                // Find lines that aren't comments, aren't empty, and aren't absolute URLs
+                const hasRelativePath = lines.some(line => {
+                    return !line.startsWith('#') && 
+                           line.trim() !== '' && 
+                           !line.match(/^https?:\/\//i);
+                });
+                
+                return hasRelativePath;
+            }
+            
+            // Add drag and drop file support
+            const dropZone = document.querySelector('.file-input-wrapper');
+            
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, preventDefaults, false);
+            });
+            
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, highlight, false);
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, unhighlight, false);
+            });
+            
+            function highlight() {
+                dropZone.querySelector('.file-input-trigger').classList.add('highlight');
+            }
+            
+            function unhighlight() {
+                dropZone.querySelector('.file-input-trigger').classList.remove('highlight');
+            }
+            
+            // Handle drop
+            dropZone.addEventListener('drop', handleDrop, false);
+            
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                
+                if (files.length) {
+                    fileInput.files = files;
+                    const event = new Event('change');
+                    fileInput.dispatchEvent(event);
+                }
+            }
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,12 @@
+{
+  "name": "m3u8-player",
+  "version": "1.0.0",
+  "description": "Simple M3U8 video player",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {},
+  "author": "",
+  "license": "MIT"
+} 
