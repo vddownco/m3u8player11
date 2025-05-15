@@ -8,6 +8,12 @@ A simple M3U8 video player for playing HLS format video streams.
 - Support for most modern browsers
 - Clean and responsive user interface
 - Tools for parsing M3U8 files and downloading or creating test TS files
+- Local proxy for remote files - automatically forwards M3U8 and TS file requests, solving CORS limitations
+- Multiple CORS handling modes - Standard, Compatible, and Proxy modes available
+- Support for both local and remote M3U8 files
+- Dark/Light theme toggle for better viewing experience
+- Drag and drop file upload functionality
+- Flexible base URL configuration for relative paths in local M3U8 files
 
 ## Usage
 
