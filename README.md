@@ -62,3 +62,13 @@ docker build -t m3u8-player .
 ```bash
 docker run -d -p 3000:3000 --name m3u8-player-container m3u8-player
 ```
+
+## Acknowledgement
+
+- https://bento.me/wushihong
+- https://onee.page/wushihong
+- https://www.f6s.com/shihong-wu
+- https://ramen.tools/@shihongwu
+- https://www.behance.net/wushihong
+- https://tap.bio/@wushihong
+- https://peerlist.io/wushihong
