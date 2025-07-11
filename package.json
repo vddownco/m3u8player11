@@ -4,7 +4,8 @@
   "description": "Simple M3U8 video player",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "build": "echo 'No specific build steps required for this project. Use npm start to run the server or make build for Docker image creation.'"
   },
   "dependencies": {},
   "author": "",
